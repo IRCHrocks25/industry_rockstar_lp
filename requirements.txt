@@ -1,0 +1,7 @@
+# Core (Phase 0). lxml/beautifulsoup4 arrive in Phase 1, openai in Phase 3,
+# django-storages/boto3 with object storage in Phase 1 — add only when the
+# phase needs them.
+Django~=5.2.16
+psycopg[binary]~=3.3.4
+django-environ~=0.14.0
+django-q2~=1.10.0
