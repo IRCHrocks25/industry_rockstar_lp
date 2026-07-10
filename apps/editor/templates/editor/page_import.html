@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Import page — {{ site.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Import a page</h1>
+    <p>Bring in the HTML exported from GoHighLevel — we'll make it editable.</p>
+  </div>
+</div>
+
+<div class="panel" style="max-width: 44rem;">
+  <div class="panel-body">
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+
+      <div class="field">
+        <label class="label" for="id_page_name">Page name</label>
+        <input class="input" type="text" name="name" id="id_page_name" required autofocus
+               value="{{ form.name.value|default:'' }}"
+               {% if form.name.errors %}aria-invalid="true"{% endif %}>
+        {% if form.name.errors %}<p class="error-text">{{ form.name.errors.0 }}</p>
+        {% else %}<p class="help">E.g. “Landing page” or “Thank you”.</p>{% endif %}
+      </div>
+
+      <div class="field">
+        <label class="label" for="id_path">Address on {{ site.subdomain }}</label>
+        <input class="input mono" type="text" name="path" id="id_path"
+               value="{{ form.path.value|default:'' }}" placeholder="leave empty for the homepage"
+               autocapitalize="none" spellcheck="false"
+               {% if form.path.errors %}aria-invalid="true"{% endif %}>
+        {% if form.path.errors %}<p class="error-text">{{ form.path.errors.0 }}</p>
+        {% else %}<p class="help">“thank-you” makes the page live at /thank-you.</p>{% endif %}
+      </div>
+
+      <div class="field">
+        <span class="label" id="source-label">Where is the HTML?</span>
+        <div class="tabs" role="tablist" aria-labelledby="source-label">
+          <button type="button" class="tab" role="tab" data-source="paste" aria-selected="true">Paste it</button>
+          <button type="button" class="tab" role="tab" data-source="upload" aria-selected="false">Upload a file</button>
+          <button type="button" class="tab" role="tab" data-source="url" aria-selected="false">Fetch from a URL</button>
+        </div>
+        <input type="hidden" name="source_type" id="id_source_type" value="{{ form.source_type.value|default:'paste' }}">
+
+        <div class="tab-panel" data-panel="paste">
+          <textarea class="textarea mono" name="html_text" rows="10"
+                    placeholder="&lt;!DOCTYPE html&gt; …"
+                    aria-label="Pasted HTML">{{ form.html_text.value|default:'' }}</textarea>
+          {% if form.html_text.errors %}<p class="error-text">{{ form.html_text.errors.0 }}</p>{% endif %}
+        </div>
+        <div class="tab-panel" data-panel="upload" hidden>
+          <input class="input" type="file" name="html_file" accept=".html,.htm,text/html" aria-label="HTML file">
+          {% if form.html_file.errors %}<p class="error-text">{{ form.html_file.errors.0 }}</p>{% endif %}
+        </div>
+        <div class="tab-panel" data-panel="url" hidden>
+          <input class="input mono" type="url" name="source_url" placeholder="https://…"
+                 value="{{ form.source_url.value|default:'' }}" aria-label="Page URL">
+          {% if form.source_url.errors %}<p class="error-text">{{ form.source_url.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div style="display: flex; gap: var(--space-3);">
+        <button type="submit" class="btn btn-primary">Import</button>
+        <a class="btn btn-secondary" href="{% url 'site_detail' site.id %}">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var tabs = document.querySelectorAll(".tab");
+    var hidden = document.getElementById("id_source_type");
+    function select(source) {
+      tabs.forEach(function (tab) {
+        var active = tab.dataset.source === source;
+        tab.setAttribute("aria-selected", active ? "true" : "false");
+      });
+      document.querySelectorAll(".tab-panel").forEach(function (panel) {
+        panel.hidden = panel.dataset.panel !== source;
+      });
+      hidden.value = source;
+    }
+    tabs.forEach(function (tab) {
+      tab.addEventListener("click", function () { select(tab.dataset.source); });
+    });
+    select(hidden.value || "paste");
+  })();
+</script>
+{% endblock %}

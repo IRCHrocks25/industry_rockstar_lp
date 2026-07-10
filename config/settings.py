@@ -135,6 +135,8 @@ Q_CLUSTER = {
     "retry": 360,  # must exceed timeout
     "max_attempts": 3,
     "label": "Background jobs",
+    # Q_SYNC=True runs tasks inline (no qcluster terminal needed) — dev only.
+    "sync": env.bool("Q_SYNC", default=False),
 }
 
 # --- I18N / static -------------------------------------------------------------

@@ -28,7 +28,7 @@
     <tbody>
       {% for site in sites %}
       <tr>
-        <td>{{ site.name }}</td>
+        <td><a href="{% url 'site_detail' site.id %}">{{ site.name }}</a></td>
         <td>
           <a href="http://{{ site.subdomain }}.{{ base_domain }}" rel="noopener" target="_blank">
             {{ site.subdomain }}.{{ base_domain }}

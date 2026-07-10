@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Importing… — {{ page.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Importing “{{ page.name }}”</h1>
+    <p>Fetching, cleaning and preparing your page. This usually takes a few seconds.</p>
+  </div>
+</div>
+
+<div class="panel" style="max-width: 34rem;">
+  <div class="panel-body" id="status-box"
+       data-status-url="{% url 'import_status_json' page.id job.id %}"
+       data-edit-url="{% url 'page_edit' page.id %}"
+       data-retry-url="{% url 'page_import' page.site_id %}">
+    <p id="status-line">
+      <span class="badge badge-warning">{{ job.get_status_display }}</span>
+      <span id="status-text" style="margin-left: var(--space-2);">Working…</span>
+    </p>
+    <div id="status-error" hidden>
+      <div class="alert alert-error" role="alert" id="status-error-text"></div>
+      <p style="margin-top: var(--space-3);"><a class="btn btn-secondary" id="retry-link" href="#">Try again</a></p>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var box = document.getElementById("status-box");
+    var timer = setInterval(poll, 1500);
+    function poll() {
+      fetch(box.dataset.statusUrl, { credentials: "same-origin" })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.status === "succeeded") {
+            clearInterval(timer);
+            window.location = box.dataset.editUrl;
+          } else if (data.status === "failed") {
+            clearInterval(timer);
+            document.getElementById("status-line").hidden = true;
+            document.getElementById("status-error").hidden = false;
+            document.getElementById("status-error-text").textContent =
+              data.error || "The import failed.";
+            document.getElementById("retry-link").href = box.dataset.retryUrl;
+          }
+        })
+        .catch(function () { /* transient network error; next poll retries */ });
+    }
+    poll();
+  })();
+</script>
+{% endblock %}

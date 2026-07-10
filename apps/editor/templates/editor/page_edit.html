@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page.name }} — {{ site.name }}{% endblock %}
+
+{% block body %}
+<div class="editor-shell">
+  <header class="editor-topbar">
+    <div class="editor-topbar-left">
+      <a class="btn btn-quiet" href="{% url 'site_detail' site.id %}">
+        <svg class="icon" aria-hidden="true" style="transform: rotate(180deg);"><use href="{% static 'icons.svg' %}#chevron-right"/></svg>
+        {{ site.name }}
+      </a>
+      <span class="editor-page-name">{{ page.name }}</span>
+      {% if page.is_published %}
+      <span class="badge badge-success">Published</span>
+      {% else %}
+      <span class="badge badge-warning">Draft</span>
+      {% endif %}
+    </div>
+    <div class="editor-topbar-right">
+      <span class="help" id="save-state" role="status" aria-live="polite"></span>
+    </div>
+  </header>
+
+  <div class="editor-main">
+    <div class="editor-preview">
+      <iframe id="preview-frame" title="Page preview" sandbox="allow-scripts"
+              src="{% url 'page_preview' page.id %}"></iframe>
+    </div>
+    <aside class="editor-panel" aria-label="Page fields">
+      <div class="panel-body">
+        <h2 style="font-size: var(--text-md);">Editable fields</h2>
+        <p class="help">Marking fields arrives in the next step of the build —
+           this preview shows exactly what was imported.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}
