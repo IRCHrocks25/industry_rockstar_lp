@@ -1,0 +1,16 @@
+# Dev convenience only: a local PostgreSQL matching .env.example's DATABASE_URL.
+# Any reachable Postgres works — no Docker? use `scripts/dev.ps1 db-install/db-init/db-start`.
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: industry_rockstar
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

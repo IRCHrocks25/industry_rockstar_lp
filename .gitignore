@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.coverage
+htmlcov/
+
+# Secrets / environment
+.env
+
+# Django
+staticfiles/
+media/
+db.sqlite3
+
+# Local dev PostgreSQL (portable install + data dir)
+.pg/
+
+# Tooling / IDE / OS
+.claude/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
