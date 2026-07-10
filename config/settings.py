@@ -45,6 +45,10 @@ INSTALLED_APPS = [
     "django_q",
     "apps.accounts",
     "apps.sites",
+    "apps.pages",
+    "apps.importer",
+    "apps.assets",
+    "apps.annotation",
     "apps.editor",
     "apps.publishing",
     "apps.common",
@@ -143,3 +147,8 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Rehosted assets + rendered page blobs. Local disk in dev; swaps to R2/S3
+# via django-storages at deploy without code changes (uses the storage API).
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"

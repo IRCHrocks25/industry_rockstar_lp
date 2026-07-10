@@ -1,7 +1,11 @@
-# Core (Phase 0). lxml/beautifulsoup4 arrive in Phase 1, openai in Phase 3,
-# django-storages/boto3 with object storage in Phase 1 — add only when the
-# phase needs them.
+# openai arrives in Phase 3; django-storages/boto3 when R2 credentials exist.
 Django~=5.2.16
 psycopg[binary]~=3.3.4
 django-environ~=0.14.0
 django-q2~=1.10.0
+
+# Phase 1: HTML parse/mutate, asset fetching, upload re-encoding
+lxml~=5.4.0
+beautifulsoup4~=4.15.0
+requests~=2.34.2
+Pillow~=11.3.0
