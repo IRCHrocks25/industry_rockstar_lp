@@ -1,9 +1,11 @@
 """Host-based routing between the control and publishing planes (architecture.md §6)."""
 
 from django.conf import settings
-from django.http import Http404
+from django.http import Http404, HttpResponseRedirect
 
 from .models import Site
+
+LOOPBACK_HOSTS = {"127.0.0.1", "localhost"}
 
 
 class HostRouterMiddleware:
@@ -37,5 +39,13 @@ class HostRouterMiddleware:
                     request.site = site
                     request.urlconf = "config.urls_publishing"
                     return self.get_response(request)
+
+        # Dev convenience: a bare loopback address can't be routed (the
+        # hostname IS the router), so bounce it to the control plane instead
+        # of dead-ending. DEBUG-only; production behavior stays "unknown -> 404".
+        if settings.DEBUG and host in LOOPBACK_HOSTS:
+            return HttpResponseRedirect(
+                f"{request.scheme}://{settings.APP_HOST}{request.get_full_path()}"
+            )
 
         raise Http404

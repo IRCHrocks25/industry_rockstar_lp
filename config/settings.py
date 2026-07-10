@@ -28,6 +28,10 @@ BASE_DOMAIN_NAME = BASE_DOMAIN.rsplit(":", 1)[0]
 APP_HOST_NAME = APP_HOST.rsplit(":", 1)[0]
 
 ALLOWED_HOSTS = [APP_HOST_NAME, BASE_DOMAIN_NAME, f".{BASE_DOMAIN_NAME}"]
+if DEBUG:
+    # Dev convenience only: HostRouterMiddleware redirects these to APP_HOST
+    # so typing 127.0.0.1 doesn't dead-end. Never enabled in production.
+    ALLOWED_HOSTS += ["127.0.0.1", "localhost"]
 
 # --- Apps ---------------------------------------------------------------------
 

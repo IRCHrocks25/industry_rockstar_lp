@@ -6,9 +6,17 @@ from .models import Site
 
 
 @override_settings(
+    APP_HOST="app.testbase.com",
     APP_HOST_NAME="app.testbase.com",
     BASE_DOMAIN_NAME="testbase.com",
-    ALLOWED_HOSTS=["app.testbase.com", "testbase.com", ".testbase.com", "elsewhere.com"],
+    ALLOWED_HOSTS=[
+        "app.testbase.com",
+        "testbase.com",
+        ".testbase.com",
+        "elsewhere.com",
+        "127.0.0.1",
+        "localhost",
+    ],
 )
 class HostRouterMiddlewareTests(TestCase):
     def setUp(self):
@@ -57,6 +65,22 @@ class HostRouterMiddlewareTests(TestCase):
     def test_nested_subdomain_404s(self):
         with self.assertRaises(Http404):
             self.middleware(self._request("a.promo.testbase.com"))
+
+    @override_settings(DEBUG=True)
+    def test_loopback_redirects_to_app_host_in_debug(self):
+        request = self.factory.get("/login/?next=/", HTTP_HOST="127.0.0.1:8001")
+        response = self.middleware(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "http://app.testbase.com/login/?next=/")
+
+    @override_settings(DEBUG=True)
+    def test_bare_localhost_redirects_in_debug(self):
+        response = self.middleware(self._request("localhost:8001"))
+        self.assertEqual(response.status_code, 302)
+
+    def test_loopback_404s_when_debug_off(self):
+        with self.assertRaises(Http404):
+            self.middleware(self._request("127.0.0.1"))
 
     def test_subdomain_match_is_case_insensitive(self):
         request = self._request("PROMO.testbase.com")
