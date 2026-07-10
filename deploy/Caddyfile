@@ -1,0 +1,44 @@
+# Production edge (architecture.md §6). Not used in local dev.
+#
+# Prerequisites:
+#   - Wildcard DNS: app.BASE_DOMAIN and *.BASE_DOMAIN -> this host
+#   - A Caddy build with your DNS provider module for the wildcard cert
+#     (example below: cloudflare; see caddyserver.com/docs/automatic-https)
+#
+# Environment: BASE_DOMAIN (e.g. yourdomain.com), UPSTREAM (e.g. 127.0.0.1:8000),
+#              CF_API_TOKEN (DNS-challenge credentials), REPO_DIR (checkout path).
+
+{
+	email ops@{$BASE_DOMAIN}
+
+	# v2 — custom domains via on-demand TLS. Uncomment together with the
+	# https:// site block below; the ask endpoint must confirm the hostname
+	# exists in the Domain table before a cert is issued.
+	# on_demand_tls {
+	# 	ask http://{$UPSTREAM}/_domains/check
+	# }
+}
+
+app.{$BASE_DOMAIN}, *.{$BASE_DOMAIN} {
+	tls {
+		dns cloudflare {$CF_API_TOKEN}
+	}
+	encode zstd gzip
+
+	# Control-plane static assets (collectstatic output).
+	handle_path /static/* {
+		root * {$REPO_DIR}/staticfiles
+		file_server
+	}
+
+	reverse_proxy {$UPSTREAM}
+}
+
+# v2 — custom domains (any hostname a client CNAMEs at us):
+# https:// {
+# 	tls {
+# 		on_demand
+# 	}
+# 	encode zstd gzip
+# 	reverse_proxy {$UPSTREAM}
+# }
