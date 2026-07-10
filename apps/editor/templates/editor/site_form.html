@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}New site — Industry Rockstar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>New site</h1>
+    <p>A site is a funnel: it gets its own web address and holds the landing
+       page plus any follow-up pages (like a thank-you page).</p>
+  </div>
+</div>
+
+<div class="panel" style="max-width: 34rem;">
+  <div class="panel-body">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="field">
+        <label class="label" for="id_name">Site name</label>
+        <input class="input" type="text" name="name" id="id_name" required
+               value="{{ form.name.value|default:'' }}" autofocus
+               {% if form.name.errors %}aria-invalid="true" aria-describedby="name-error"{% endif %}>
+        {% if form.name.errors %}
+        <p class="error-text" id="name-error">{{ form.name.errors.0 }}</p>
+        {% else %}
+        <p class="help">Only your team sees this — e.g. “Spring Promo”.</p>
+        {% endif %}
+      </div>
+
+      <div class="field">
+        <label class="label" for="id_subdomain">Web address</label>
+        <input class="input mono" type="text" name="subdomain" id="id_subdomain" required
+               value="{{ form.subdomain.value|default:'' }}"
+               autocapitalize="none" autocomplete="off" spellcheck="false"
+               {% if form.subdomain.errors %}aria-invalid="true" aria-describedby="subdomain-error"{% endif %}>
+        {% if form.subdomain.errors %}
+        <p class="error-text" id="subdomain-error">{{ form.subdomain.errors.0 }}</p>
+        {% endif %}
+        <p class="help">Visitors will see
+          <span class="mono" id="url-preview" data-base-domain="{{ base_domain }}">…</span>
+        </p>
+      </div>
+
+      <div style="display: flex; gap: var(--space-3);">
+        <button type="submit" class="btn btn-primary">Create site</button>
+        <a class="btn btn-secondary" href="{% url 'sites_list' %}">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var name = document.getElementById("id_name");
+    var sub = document.getElementById("id_subdomain");
+    var preview = document.getElementById("url-preview");
+    var base = preview.dataset.baseDomain;
+    var subTouched = sub.value !== "";
+
+    function slugify(text) {
+      return text.toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 63);
+    }
+    function updatePreview() {
+      preview.textContent = (sub.value || "your-site") + "." + base;
+    }
+    name.addEventListener("input", function () {
+      if (!subTouched) { sub.value = slugify(name.value); updatePreview(); }
+    });
+    sub.addEventListener("input", function () {
+      subTouched = sub.value !== "";
+      updatePreview();
+    });
+    updatePreview();
+  })();
+</script>
+{% endblock %}

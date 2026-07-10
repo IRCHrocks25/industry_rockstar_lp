@@ -7,6 +7,7 @@ from . import views
 
 urlpatterns = [
     path("", views.sites_list, name="sites_list"),
+    path("sites/new/", views.site_create, name="site_create"),
     path(
         "login/",
         auth_views.LoginView.as_view(
