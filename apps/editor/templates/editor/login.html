@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Sign in — Industry Rockstar{% endblock %}
+
+{% block body %}
+<div class="auth-layout">
+  <div class="auth-card">
+    <span class="auth-brand">Industry Rockstar</span>
+    <div class="panel">
+      <div class="panel-body">
+        <h1 style="font-size: var(--text-lg); margin-bottom: var(--space-4);">Sign in</h1>
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-error" role="alert" style="margin-bottom: var(--space-4);">
+          {{ form.non_field_errors.0 }}
+        </div>
+        {% endif %}
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="field">
+            <label class="label" for="id_username">Username</label>
+            <input class="input" type="text" name="username" id="id_username"
+                   autocomplete="username" autofocus required
+                   {% if form.username.errors %}aria-invalid="true"{% endif %}>
+          </div>
+          <div class="field">
+            <label class="label" for="id_password">Password</label>
+            <input class="input" type="password" name="password" id="id_password"
+                   autocomplete="current-password" required
+                   {% if form.password.errors %}aria-invalid="true"{% endif %}>
+          </div>
+          <input type="hidden" name="next" value="{{ next }}">
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Sign in</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

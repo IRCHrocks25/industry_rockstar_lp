@@ -1,0 +1,41 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>{% block title %}Industry Rockstar{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+  {% block body %}
+  <header class="topnav">
+    <div class="container">
+      <a class="topnav-brand" href="{% url 'sites_list' %}">Industry Rockstar</a>
+      <nav class="topnav-links" aria-label="Main">
+        <a class="topnav-link" href="{% url 'sites_list' %}" {% if request.resolver_match.url_name == 'sites_list' %}aria-current="page"{% endif %}>
+          <svg class="icon" aria-hidden="true"><use href="{% static 'icons.svg' %}#layout-grid"/></svg>
+          Sites
+        </a>
+      </nav>
+      {% if user.is_authenticated %}
+      <div class="topnav-user">
+        <span>{{ user.get_username }}</span>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-quiet">
+            <svg class="icon" aria-hidden="true"><use href="{% static 'icons.svg' %}#log-out"/></svg>
+            Sign out
+          </button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+  {% endblock %}
+</body>
+</html>

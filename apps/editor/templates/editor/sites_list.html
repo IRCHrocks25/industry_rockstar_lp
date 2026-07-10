@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sites — Industry Rockstar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Sites</h1>
+    <p>Each site is a funnel on its own subdomain.</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'admin:sites_site_add' %}">
+    <svg class="icon" aria-hidden="true"><use href="{% static 'icons.svg' %}#plus"/></svg>
+    New site
+  </a>
+</div>
+
+<div class="panel">
+  {% if sites %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Address</th>
+        <th scope="col">Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for site in sites %}
+      <tr>
+        <td>{{ site.name }}</td>
+        <td>
+          <a href="http://{{ site.subdomain }}.{{ base_domain }}" rel="noopener" target="_blank">
+            {{ site.subdomain }}.{{ base_domain }}
+            <svg class="icon" aria-hidden="true"><use href="{% static 'icons.svg' %}#external-link"/></svg>
+          </a>
+        </td>
+        <td>{{ site.created_at|date:"M j, Y" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">
+    <h2>No sites yet</h2>
+    <p>Create your first site to give a funnel its subdomain.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
