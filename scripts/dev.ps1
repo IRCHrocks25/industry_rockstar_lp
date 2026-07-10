@@ -44,7 +44,12 @@ switch ($Task) {
             }
         } finally { Pop-Location }
     }
-    'run'            { Invoke-Manage @('runserver', '0.0.0.0:8000') }
+    'run'            {
+        # Port via $env:PORT (default 8000) — keep BASE_DOMAIN/APP_HOST in .env in sync.
+        $port = '8000'
+        if ($env:PORT) { $port = $env:PORT }
+        Invoke-Manage @('runserver', "0.0.0.0:$port")
+    }
     'worker'         { Invoke-Manage @('qcluster') }
     'migrate'        { Invoke-Manage (@('migrate') + $Rest) }
     'makemigrations' { Invoke-Manage (@('makemigrations') + $Rest) }

@@ -44,6 +44,10 @@ Secrets live in `.env` (copied from `.env.example` by `setup`), never committed.
 - `http://{subdomain}.localhost:8000` — published site for that `Site`
 - unknown subdomains → 404
 
+Port 8000 taken by another project? Set `BASE_DOMAIN`/`APP_HOST` in `.env`
+to another port and start with `PORT=8001` (env var for `dev.ps1 run` /
+`make run PORT=8001`).
+
 ## Deploy
 
 Production sits behind Caddy (wildcard TLS for `*.yourdomain.com`); see
