@@ -48,6 +48,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # Resolves Host -> plane (control vs publishing) before URL resolution;
+    # unknown hosts 404 here without leaking that the app exists.
+    "apps.sites.middleware.HostRouterMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -86,6 +89,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # --- Auth ---------------------------------------------------------------------
 
 AUTH_USER_MODEL = "accounts.User"
+
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "sites_list"
+LOGOUT_REDIRECT_URL = "login"
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
