@@ -1,9 +1,14 @@
+import shutil
+import tempfile
 from io import BytesIO
 from unittest import mock
 
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase, override_settings
+from lxml import html as lxml_html
 
-from .fetcher import FetchError, fetch_url, validate_url
+from .fetcher import FetchError, FetchResult, fetch_url, validate_url
+from .models import Asset
+from .rehost import Rehoster
 
 
 def _addrinfo(ip):
@@ -105,3 +110,116 @@ class FetchUrlTests(SimpleTestCase):
         get.return_value = FakeResponse(status=404)
         with self.assertRaises(FetchError):
             fetch_url("http://ok.example.com/missing")
+
+
+PNG = b"\x89PNG-fake-image-bytes"
+JPG = b"\xff\xd8JPEG-fake-image-bytes"
+CSS = b'.hero { background: url("bg.jpg"); }'
+
+
+def fake_fetch(url, max_bytes=None, allowed_types=None):
+    routes = {
+        "https://cdn.ghl.example/a.png": (PNG, "image/png"),
+        "https://cdn.ghl.example/a2x.png": (PNG + b"2x", "image/png"),
+        "https://cdn.ghl.example/dupe.png": (PNG, "image/png"),
+        "https://cdn.ghl.example/bg.jpg": (JPG, "image/jpeg"),
+        "https://cdn.ghl.example/style.css": (CSS, "text/css"),
+        "https://page.example.com/relative.png": (PNG + b"rel", "image/png"),
+    }
+    if url not in routes:
+        raise FetchError(f"HTTP 404 fetching {url}")
+    content, ctype = routes[url]
+    return FetchResult(content=content, content_type=ctype, final_url=url, encoding="utf-8")
+
+
+@mock.patch("apps.assets.rehost.fetch_url", side_effect=fake_fetch)
+class RehostTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._media = tempfile.mkdtemp()
+        cls._override = override_settings(MEDIA_ROOT=cls._media)
+        cls._override.enable()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._override.disable()
+        shutil.rmtree(cls._media, ignore_errors=True)
+        super().tearDownClass()
+
+    def _run(self, html, base_url=None):
+        doc = lxml_html.document_fromstring(html)
+        rehoster = Rehoster(base_url=base_url)
+        warnings = rehoster.rehost_document(doc)
+        return lxml_html.tostring(doc, encoding="unicode"), warnings
+
+    def test_img_src_rewritten_and_asset_stored(self, _):
+        out, warnings = self._run('<img src="https://cdn.ghl.example/a.png">')
+        self.assertNotIn("cdn.ghl.example/a.png", out)
+        self.assertIn("/media/assets/", out)
+        self.assertEqual(Asset.objects.count(), 1)
+        asset = Asset.objects.get()
+        self.assertEqual(asset.content_type, "image/png")
+        self.assertEqual(warnings, [])
+
+    def test_identical_content_dedupes_to_one_asset(self, _):
+        out, _w = self._run(
+            '<img src="https://cdn.ghl.example/a.png"><img src="https://cdn.ghl.example/dupe.png">'
+        )
+        self.assertEqual(Asset.objects.count(), 1)
+
+    def test_srcset_candidates_rewritten(self, _):
+        out, _w = self._run(
+            '<img srcset="https://cdn.ghl.example/a.png 1x, https://cdn.ghl.example/a2x.png 2x" src="https://cdn.ghl.example/a.png">'
+        )
+        self.assertNotIn("cdn.ghl.example", out)
+        self.assertIn("1x", out)
+        self.assertIn("2x", out)
+
+    def test_inline_style_background_rewritten(self, _):
+        out, _w = self._run(
+            '<div style="background: url(https://cdn.ghl.example/bg.jpg) no-repeat;">x</div>'
+        )
+        self.assertNotIn("cdn.ghl.example", out)
+        self.assertIn("/media/assets/", out)
+
+    def test_style_block_rewritten(self, _):
+        out, _w = self._run(
+            "<style>.h { background-image: url('https://cdn.ghl.example/bg.jpg'); }</style><p>x</p>"
+        )
+        self.assertNotIn("cdn.ghl.example", out)
+
+    def test_external_stylesheet_fetched_and_inner_urls_rehosted(self, _):
+        out, warnings = self._run(
+            '<link rel="stylesheet" href="https://cdn.ghl.example/style.css"><p>x</p>'
+        )
+        self.assertNotIn("cdn.ghl.example/style.css", out)
+        self.assertEqual(warnings, [])
+        css_asset = Asset.objects.get(content_type="text/css")
+        from django.core.files.storage import default_storage
+
+        stored_css = default_storage.open(css_asset.storage_key).read().decode()
+        self.assertIn("/media/assets/", stored_css)  # bg.jpg inside the css was rehosted
+        self.assertNotIn("bg.jpg", stored_css)
+
+    def test_failed_asset_keeps_original_url_and_warns(self, _):
+        out, warnings = self._run('<img src="https://cdn.ghl.example/missing.png">')
+        self.assertIn("cdn.ghl.example/missing.png", out)
+        self.assertEqual(len(warnings), 1)
+        self.assertIn("missing.png", warnings[0])
+
+    def test_relative_url_resolved_against_base(self, _):
+        out, _w = self._run('<img src="relative.png">', base_url="https://page.example.com/lp")
+        self.assertNotIn('src="relative.png"', out)
+        self.assertIn("/media/assets/", out)
+
+    def test_relative_url_without_base_left_alone(self, _):
+        out, warnings = self._run('<img src="relative.png">')
+        self.assertIn('src="relative.png"', out)
+        self.assertEqual(warnings, [])
+
+    def test_data_uri_left_alone(self, _):
+        html = '<img src="data:image/png;base64,AAAA">'
+        out, warnings = self._run(html)
+        self.assertIn("data:image/png;base64,AAAA", out)
+        self.assertEqual(Asset.objects.count(), 0)

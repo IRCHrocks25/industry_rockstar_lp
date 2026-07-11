@@ -65,5 +65,12 @@ def _resolve_raw_html(source):
 
 
 def _rehost_step(job):
-    # Asset rehosting arrives in the next commit; imports work without it.
-    return None
+    from apps.assets.rehost import Rehoster
+
+    base_url = job.source.source_url or None if job.source else None
+
+    def step(doc):
+        rehoster = Rehoster(base_url=base_url)
+        return rehoster.rehost_document(doc)
+
+    return step
