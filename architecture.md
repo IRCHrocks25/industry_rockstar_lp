@@ -13,9 +13,11 @@
 ## 1. What we're building (one-paragraph summary)
 
 A lightweight CMS for **one client** that operates on **imported HTML** rather
-than a native block model. The client uploads/pastes HTML from GHL. An
-**annotation pipeline** (deterministic parser + a single OpenAI pass) marks which
-regions are editable and what type they are. Their non-technical team members then
+than a native block model. The client brings HTML — pasted, uploaded, or fetched
+by URL — from **their own authoring process** (this replaces the earlier
+GoHighLevel-export assumption; the pipeline is source-agnostic and targets rich,
+custom-authored pages). An **annotation pipeline** (deterministic parser + a
+single OpenAI pass) marks which regions are editable and what type they are. Their non-technical team members then
 edit those regions through labeled form fields and a live preview. Pages are
 grouped into funnels (Site → Pages) so a landing page can hand off to its own
 thank-you page. Published pages are rendered to near-static HTML and served from
@@ -470,13 +472,43 @@ project/
   Prove `{sub}.yourdomain.com` resolves to a `Site` and serves a placeholder.
 - **Phase 1 — Core loop WITHOUT AI.** Import HTML → rehost assets → **manual**
   annotation → edit → publish → serve. Proves render/edit/publish end-to-end
-  before the LLM exists.
+  before the LLM exists. _Publish/serve shipped in `apps/publishing/`:
+  `service.publish_page` snapshots the draft into an immutable `PageVersion`,
+  renders, stores the blob via `default_storage` keyed by version, repoints
+  `published_version`, and writes a `PublishRecord`; `views.serve_page` serves
+  the blob on the subdomain (render-from-snapshot fallback if the blob is
+  missing). Editor topbar has Publish / Publish changes + View live, with an
+  "Unpublished changes" badge when the draft moved past the published snapshot._
 - **Phase 2 — Funnels & forms.** Multi-page Sites, form annotation, the
   `/_submit/{form_id}` proxy endpoint, the `Submission` ledger, async webhook
   forward with retries (resilient default per §13.2), and the success → thank-you
   redirect wiring. This makes the LP → thank-you flow work.
 - **Phase 3 — LLM annotation.** Add the temp-id skeleton → OpenAI → materialize
   pass in front of the manual reviewer (which becomes the correction UI).
+  _Implemented in `apps/annotation/`._ Notes on what shipped:
+  - Runs inside the import job, gated on `OPENAI_API_KEY`; with no key, imports
+    still succeed with an empty annotation (the manual path) — the LLM never
+    blocks the core loop (§2). A model/network failure is likewise non-fatal:
+    the import lands un-annotated and the reason is recorded as an `ImportJob`
+    warning.
+  - The skeleton (`skeleton.py`) is a compact indented outline (tag, temp id,
+    classes, href/src/countdown hints, truncated text); scripts/styles excluded.
+    Pages over ~20k skeleton chars chunk by body children and merge.
+  - `materialize.py` maps returned temp ids → slugified collision-safe
+    `data-editable-id`s, extracts initial `field_values`, and strips leftover
+    temp ids. Hallucinated ids / unknown field types degrade to skip / `text`.
+  - The editor side panel renders the detected fields grouped + typed and
+    autosaves edits (`/pages/{id}/save/`) into the draft `field_values`; the
+    sandboxed preview re-renders through the same engine as publish. Types the
+    Phase-1 render engine can't patch yet (countdown, form, color, visibility,
+    meta_*) are shown read-only until their own phase.
+  - **Stylesheet background images** (`apps/annotation/backgrounds.py`): custom
+    pages set hero/section backgrounds in a `<style>` rule, not inline. We resolve
+    those rules to nodes via `cssselect`, hint the annotator, and at materialize
+    inline the declaration onto the node — an inline style outranks the sheet, and
+    the render engine swaps only the `url()` token so gradient/overlay layers in a
+    multi-layer background survive an image change. `cssselect` is optional: absent,
+    this degrades to inline-only background support.
 - **Phase 4 — Countdowns.** `CountdownConfig` + `countdown.js` + friendly editor.
 - **Phase 5 — Production polish.** Version history/rollback UI, custom domains
   (v2 per §13.3), managed tracking scripts, lead dashboards/exports on top of the
@@ -487,3 +519,66 @@ project/
 > The key call: **don't let the LLM block your core loop.** Phases 1–2 ship a
 > working, funnel-capable product with manual annotation; the AI in Phase 3 just
 > makes annotation faster.
+
+## 17. Template library (`apps/library`) — start a site from a ready-made funnel
+
+A second way for content to enter the system, beside the GHL import (§7):
+agency-authored **starter templates** the marketer picks on the **New site**
+screen. No import job, no LLM — provisioning is synchronous and deterministic,
+and the created pages ride the exact same editor/render/publish path as
+imported ones.
+
+**Models.** `SiteTemplate` (name, description, is_active, sort) →
+`TemplatePage` (name, path, `html_source`, derived `template_html` +
+`annotation_map` + `default_values`, plus `status` ready/annotating/failed;
+unique `(template, path)`). Authoring: the marketer-facing **Templates**
+screen (paste/upload HTML, landing + optional thank-you page), Django admin
+for DSL work, and `manage.py seed_templates` for the built-in starters in
+`apps/library/starters/`.
+
+**Two authoring paths.** DSL-annotated HTML derives its schema synchronously
+on save and is READY at once. Plain HTML (a GHL export pasted in the UI) is
+saved with status ANNOTATING and handed to
+`apps/library/tasks.annotate_template_page` (Django-Q), which runs the same
+importer pipeline (sanitize → rehost → stamp) + AI annotation as an import;
+per §2 a disabled/failed LLM still yields a READY template, just without
+fields — only unparseable HTML marks it FAILED. `SiteTemplate.gallery()`
+(active + every page READY) is what the New site screen offers.
+
+**Annotation DSL** (`apps/library/parser.py`). Authors mark editable slots
+directly in the HTML — the parser never invents fields:
+
+```html
+<section data-section="hero" data-label="Top banner">
+  <h1 data-edit="hero.title" data-type="text" data-label="Headline">…</h1>
+  <a  data-edit="hero.cta"   data-type="cta"  data-label="Button" href="…">…</a>
+</section>
+```
+
+- `data-edit` becomes the stable `data-editable-id` the render engine (§10)
+  patches; `data-type` must be one of §7's `EDITABLE_FIELD_TYPES`; the field's
+  group is the enclosing `data-section`'s label.
+- Defaults are extracted from the markup itself (via
+  `apps.annotation.materialize.extract_value`, so value shapes match the
+  render engine exactly), then all DSL attributes are stripped — nothing leaks
+  to published pages. Same sanitize pass as imports (§12).
+- **Invariant: schema is always rebuilt from `html_source` on save** — HTML
+  and schema cannot drift; `default_values` is never hand-edited.
+- A `<form>` may carry `data-success-path="thank-you"` to wire its
+  success-redirect to the sibling page created from that path (§11).
+
+**Provisioning** (`apps/library/provision.py`, one transaction). Each
+`TemplatePage` → `Page` + draft `PageVersion` with `field_values` seeded from
+a deep copy of the defaults; forms get the same `detect_and_sync` as imports;
+success pages are wired across the new siblings. The marketer is redirected
+straight into the editor on the new homepage. Templates and sites never share
+state — refreshing a template never touches existing sites.
+
+**UI.** New site (`site_form.html`) shows a card gallery: "Start blank"
+(empty site, import later), "Paste your own HTML" (creates the site + a
+"Landing page" `Page` and routes the HTML through the normal import job —
+AI annotation included — then lands on the import status screen), and the
+gallery templates (thumbnail via a scaled sandboxed iframe of
+`/templates/{id}/preview/`). The **Templates** screen (`/templates/`) lists,
+creates, and removes gallery templates; removal never touches provisioned
+sites (they hold deep copies).

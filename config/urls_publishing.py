@@ -11,5 +11,8 @@ from django.urls import include, path
 # DEBUG only: rehosted assets referenced by pages are served off the same
 # subdomain in dev. Production serves media from object storage/CDN.
 urlpatterns = static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) + [
+    # /_submit/{form_id} — the form proxy (architecture.md §11). Before the page
+    # server so it's never shadowed by a page path.
+    path("", include("apps.forms.urls")),
     path("", include("apps.publishing.urls")),
 ]

@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     "apps.importer",
     "apps.assets",
     "apps.annotation",
+    "apps.library",
+    "apps.forms",
     "apps.editor",
     "apps.publishing",
     "apps.common",
@@ -138,6 +140,28 @@ Q_CLUSTER = {
     # Q_SYNC=True runs tasks inline (no qcluster terminal needed) — dev only.
     "sync": env.bool("Q_SYNC", default=False),
 }
+
+# --- OpenAI annotation (architecture.md §7, Phase 3) ---------------------------
+# The LLM annotates once at import and never emits HTML — it only returns JSON
+# field references. Empty API key => annotation is skipped and imports still
+# succeed with an empty annotation_map (the manual path).
+OPENAI_API_KEY = env("OPENAI_API_KEY", default="")
+# Default to full gpt-4o for label accuracy (mini is cheaper but noticeably
+# looser at picking the right node/type). Override per account/budget.
+OPENAI_MODEL = env("OPENAI_MODEL", default="gpt-4o")
+OPENAI_COST_CENTS_PER_1K = env.float("OPENAI_COST_CENTS_PER_1K", default=0.0)
+
+# --- Forms & lead capture (architecture.md §11, §12) ---------------------------
+# Optional allowlist of hostnames a form webhook may target (defence in depth on
+# top of the SSRF guard, which already blocks internal addresses). Empty = allow
+# any public host.
+WEBHOOK_ALLOWED_HOSTS = env.list("WEBHOOK_ALLOWED_HOSTS", default=[])
+# Hard cap on a submitted form body; anything larger is rejected.
+SUBMIT_MAX_BYTES = env.int("SUBMIT_MAX_BYTES", default=64 * 1024)
+# Best-effort per-IP throttle on /_submit: max submissions per window (seconds).
+# Uses the Django cache; with the default LocMemCache this is per-process.
+SUBMIT_RATE_LIMIT = env.int("SUBMIT_RATE_LIMIT", default=30)
+SUBMIT_RATE_WINDOW = env.int("SUBMIT_RATE_WINDOW", default=60)
 
 # --- I18N / static -------------------------------------------------------------
 

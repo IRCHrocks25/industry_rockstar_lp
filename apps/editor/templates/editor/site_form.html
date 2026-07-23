@@ -11,9 +11,9 @@
   </div>
 </div>
 
-<div class="panel" style="max-width: 34rem;">
+<div class="panel" style="max-width: 54rem;">
   <div class="panel-body">
-    <form method="post" novalidate>
+    <form method="post" enctype="multipart/form-data" novalidate>
       {% csrf_token %}
 
       <div class="field">
@@ -40,6 +40,67 @@
         <p class="help">Visitors will see
           <span class="mono" id="url-preview" data-base-domain="{{ base_domain }}">…</span>
         </p>
+      </div>
+
+      <fieldset class="field" style="border: 0; padding: 0;">
+        <legend class="label">Start from</legend>
+        {% if form.non_field_errors %}
+        <p class="error-text">{{ form.non_field_errors.0 }}</p>
+        {% endif %}
+        <div class="template-gallery">
+          <label class="template-card">
+            <input type="radio" name="start" value="blank"
+                   {% if not form.start.value or form.start.value == 'blank' %}checked{% endif %}>
+            <span class="template-card-thumb">
+              <span class="template-card-blank">Empty site</span>
+            </span>
+            <span class="template-card-body">
+              <span class="template-card-name">Start blank</span>
+              <span class="template-card-desc">Add pages later from the site screen.</span>
+            </span>
+          </label>
+          <label class="template-card">
+            <input type="radio" name="start" value="paste"
+                   {% if form.start.value == 'paste' %}checked{% endif %}>
+            <span class="template-card-thumb">
+              <span class="template-card-blank">&lt;/&gt;</span>
+            </span>
+            <span class="template-card-body">
+              <span class="template-card-name">Paste your own HTML</span>
+              <span class="template-card-desc">Bring a page from GoHighLevel — we'll make it editable.</span>
+            </span>
+          </label>
+          {% for t in templates %}
+          <label class="template-card">
+            <input type="radio" name="start" value="{{ t.id }}"
+                   {% if form.start.value|stringformat:"s" == t.id|stringformat:"s" %}checked{% endif %}>
+            <span class="template-card-thumb">
+              <iframe src="{% url 'template_preview' t.id %}" title="" tabindex="-1"
+                      loading="lazy" sandbox scrolling="no" aria-hidden="true"></iframe>
+            </span>
+            <span class="template-card-body">
+              <span class="template-card-name">{{ t.name }}</span>
+              <span class="template-card-desc">{{ t.description }}</span>
+              <span class="template-card-meta">
+                <span>{{ t.pages.count }} page{{ t.pages.count|pluralize }}</span>
+                <a href="{% url 'template_preview' t.id %}" target="_blank" rel="noopener">Preview</a>
+              </span>
+            </span>
+          </label>
+          {% endfor %}
+        </div>
+        <p class="help">Templates come ready to edit — swap the words and photos, nothing to design.
+          Manage them on the <a href="{% url 'templates_list' %}">Templates</a> screen.</p>
+      </fieldset>
+
+      <div class="field" id="paste-panel" {% if form.start.value != 'paste' %}hidden{% endif %}>
+        <label class="label" for="id_html_text">Your page HTML</label>
+        <textarea class="textarea mono" name="html_text" id="id_html_text" rows="10"
+                  placeholder="&lt;!DOCTYPE html&gt; …">{{ form.html_text.value|default:'' }}</textarea>
+        {% if form.html_text.errors %}<p class="error-text">{{ form.html_text.errors.0 }}</p>{% endif %}
+        <p class="help" style="margin-top: var(--space-2);">…or upload the exported file instead:</p>
+        <input class="input" type="file" name="html_file" accept=".html,.htm,text/html" aria-label="HTML file">
+        {% if form.html_file.errors %}<p class="error-text">{{ form.html_file.errors.0 }}</p>{% endif %}
       </div>
 
       <div style="display: flex; gap: var(--space-3);">
@@ -75,6 +136,13 @@
       updatePreview();
     });
     updatePreview();
+
+    var pastePanel = document.getElementById("paste-panel");
+    document.querySelectorAll('input[name="start"]').forEach(function (radio) {
+      radio.addEventListener("change", function () {
+        pastePanel.hidden = radio.value !== "paste";
+      });
+    });
   })();
 </script>
 {% endblock %}

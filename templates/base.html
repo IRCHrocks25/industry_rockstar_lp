@@ -17,6 +17,10 @@
           <svg class="icon" aria-hidden="true"><use href="{% static 'icons.svg' %}#layout-grid"/></svg>
           Sites
         </a>
+        <a class="topnav-link" href="{% url 'templates_list' %}" {% if request.resolver_match.url_name in 'templates_list template_create' %}aria-current="page"{% endif %}>
+          <svg class="icon" aria-hidden="true"><use href="{% static 'icons.svg' %}#layout-template"/></svg>
+          Templates
+        </a>
       </nav>
       {% if user.is_authenticated %}
       <div class="topnav-user">

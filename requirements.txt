@@ -1,4 +1,4 @@
-# openai arrives in Phase 3; django-storages/boto3 when R2 credentials exist.
+# django-storages/boto3 when R2 credentials exist.
 Django~=5.2.16
 psycopg[binary]~=3.3.4
 django-environ~=0.14.0
@@ -9,3 +9,10 @@ lxml~=5.4.0
 beautifulsoup4~=4.15.0
 requests~=2.34.2
 Pillow~=11.3.0
+
+# Phase 3: LLM annotation (structured outputs). Imported lazily, so the app
+# still runs/tests without it; only the import job's annotate step needs it.
+openai>=1.40,<2.0
+# Resolve CSS selectors -> nodes so stylesheet-defined background images become
+# editable. Optional at runtime (annotation degrades to inline-only without it).
+cssselect~=1.3.0

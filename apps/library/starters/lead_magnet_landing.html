@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Free Guide</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: Georgia, 'Times New Roman', serif; color: #1c1917; background: #fffbf5; line-height: 1.6; }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 24px; }
+  .hero { background: #134e4a; color: #f0fdfa; padding: 88px 0 96px; }
+  .hero-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 56px; align-items: center; }
+  .badge { display: inline-block; font-family: Arial, sans-serif; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; background: rgba(240,253,250,0.12); border: 1px solid rgba(240,253,250,0.3); padding: 6px 14px; border-radius: 999px; margin-bottom: 24px; }
+  .hero h1 { font-size: 46px; line-height: 1.15; font-weight: 700; margin-bottom: 20px; }
+  .hero p.lead { font-size: 19px; color: #ccfbf1; max-width: 34em; }
+  .card { background: #ffffff; color: #1c1917; border-radius: 12px; padding: 36px 32px; box-shadow: 0 20px 50px rgba(0,0,0,0.25); }
+  .card h2 { font-size: 22px; margin-bottom: 18px; }
+  .card label { display: block; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; margin: 14px 0 6px; }
+  .card input { width: 100%; padding: 12px 14px; font-size: 16px; border: 1px solid #d6d3d1; border-radius: 8px; font-family: Arial, sans-serif; }
+  .card button { width: 100%; margin-top: 22px; padding: 15px; font-size: 17px; font-weight: bold; color: #ffffff; background: #0d9488; border: 0; border-radius: 8px; cursor: pointer; font-family: Arial, sans-serif; }
+  .card .privacy { font-family: Arial, sans-serif; font-size: 12px; color: #78716c; margin-top: 14px; text-align: center; }
+  .benefits { padding: 84px 0; }
+  .benefits h2 { font-size: 32px; text-align: center; margin-bottom: 52px; }
+  .benefit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+  .benefit h3 { font-size: 19px; margin-bottom: 10px; }
+  .benefit p { color: #57534e; font-size: 16px; }
+  .benefit .num { font-family: Arial, sans-serif; display: inline-flex; width: 40px; height: 40px; align-items: center; justify-content: center; background: #ccfbf1; color: #134e4a; font-weight: bold; border-radius: 999px; margin-bottom: 16px; }
+  .about { background: #f5f5f4; padding: 84px 0; }
+  .about-grid { display: grid; grid-template-columns: 320px 1fr; gap: 56px; align-items: center; }
+  .about img { width: 100%; border-radius: 12px; display: block; }
+  .about h2 { font-size: 30px; margin-bottom: 16px; }
+  .about .bio { color: #44403c; font-size: 17px; }
+  .closing { background: #134e4a; color: #f0fdfa; text-align: center; padding: 76px 0; }
+  .closing h2 { font-size: 34px; margin-bottom: 28px; }
+  .closing a { display: inline-block; background: #0d9488; color: #ffffff; text-decoration: none; font-family: Arial, sans-serif; font-weight: bold; font-size: 17px; padding: 16px 40px; border-radius: 8px; }
+  footer { padding: 36px 0; text-align: center; font-family: Arial, sans-serif; font-size: 13px; color: #78716c; }
+  @media (max-width: 800px) {
+    .hero-grid, .benefit-grid, .about-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 34px; }
+  }
+</style>
+</head>
+<body>
+
+<section class="hero" data-section="hero" data-label="Top banner">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <span class="badge" data-edit="hero.badge" data-type="text" data-label="Small badge">Free download</span>
+        <h1 data-edit="hero.title" data-type="text" data-label="Headline">The 7-step playbook our clients use to double their leads</h1>
+        <p class="lead" data-edit="hero.subtitle" data-type="text" data-label="Supporting line">Enter your details and we'll send the complete guide straight to your inbox — no fluff, just the exact steps.</p>
+      </div>
+      <div class="card" data-section="signup" data-label="Signup form">
+        <h2 data-edit="signup.heading" data-type="text" data-label="Form heading">Get the free guide</h2>
+        <form id="signup" data-success-path="thank-you">
+          <label for="lead-name">Your name</label>
+          <input id="lead-name" name="name" type="text" required>
+          <label for="lead-email">Email address</label>
+          <input id="lead-email" name="email" type="email" required>
+          <button type="submit" data-edit="signup.button" data-type="text" data-label="Button text">Send me the guide</button>
+        </form>
+        <p class="privacy" data-edit="signup.privacy" data-type="text" data-label="Privacy note">We'll never share your email. Unsubscribe any time.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="benefits" data-section="benefits" data-label="What's inside">
+  <div class="wrap">
+    <h2 data-edit="benefits.heading" data-type="text" data-label="Section heading">What you'll learn inside</h2>
+    <div class="benefit-grid">
+      <div class="benefit">
+        <span class="num">1</span>
+        <h3 data-edit="benefits.one_title" data-type="text" data-label="Benefit 1 title">Find your best-fit audience</h3>
+        <p data-edit="benefits.one_text" data-type="text" data-label="Benefit 1 text">Stop guessing who to target. Use our worksheet to pinpoint the people most likely to buy.</p>
+      </div>
+      <div class="benefit">
+        <span class="num">2</span>
+        <h3 data-edit="benefits.two_title" data-type="text" data-label="Benefit 2 title">Write offers that convert</h3>
+        <p data-edit="benefits.two_text" data-type="text" data-label="Benefit 2 text">The three-part offer formula behind our highest-performing campaigns, with examples.</p>
+      </div>
+      <div class="benefit">
+        <span class="num">3</span>
+        <h3 data-edit="benefits.three_title" data-type="text" data-label="Benefit 3 title">Follow up automatically</h3>
+        <p data-edit="benefits.three_text" data-type="text" data-label="Benefit 3 text">A simple five-email sequence you can set up once and let run in the background.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="about" data-section="about" data-label="About you">
+  <div class="wrap">
+    <div class="about-grid">
+      <img data-edit="about.photo" data-type="image" data-label="Your photo" alt="Portrait"
+           src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='640'%3E%3Crect width='640' height='640' fill='%23d6d3d1'/%3E%3Ccircle cx='320' cy='250' r='110' fill='%23a8a29e'/%3E%3Cellipse cx='320' cy='560' rx='210' ry='160' fill='%23a8a29e'/%3E%3C/svg%3E">
+      <div>
+        <h2 data-edit="about.heading" data-type="text" data-label="Heading">Hi, I'm the person behind the playbook</h2>
+        <div class="bio" data-edit="about.body" data-type="richtext" data-label="Your story">
+          <p>Over the past decade I've helped <strong>hundreds of businesses</strong> build lead engines that run without them. This guide condenses everything that actually moved the needle.</p>
+          <p>No jargon, no theory — every step includes the exact template we use with paying clients.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="closing" data-section="closing" data-label="Bottom call-to-action">
+  <div class="wrap">
+    <h2 data-edit="closing.title" data-type="text" data-label="Heading">Ready to double your leads?</h2>
+    <a href="#signup" data-edit="closing.button" data-type="cta" data-label="Button">Get the free guide</a>
+  </div>
+</section>
+
+<footer data-section="footer" data-label="Footer">
+  <div class="wrap">
+    <p data-edit="footer.smallprint" data-type="text" data-label="Footer line">© Your Business Name. All rights reserved.</p>
+  </div>
+</footer>
+
+</body>
+</html>

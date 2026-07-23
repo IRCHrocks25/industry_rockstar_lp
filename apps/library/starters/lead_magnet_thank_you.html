@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thank you</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: Georgia, 'Times New Roman', serif; color: #1c1917; background: #fffbf5; line-height: 1.6; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+  .hero { background: #134e4a; color: #f0fdfa; text-align: center; padding: 96px 0 88px; }
+  .check { display: inline-flex; width: 64px; height: 64px; align-items: center; justify-content: center; background: #0d9488; border-radius: 999px; font-size: 32px; margin-bottom: 28px; font-family: Arial, sans-serif; }
+  .hero h1 { font-size: 40px; line-height: 1.15; margin-bottom: 18px; }
+  .hero p { font-size: 19px; color: #ccfbf1; }
+  .next { padding: 72px 0; }
+  .next h2 { font-size: 26px; margin-bottom: 20px; }
+  .next .steps { color: #44403c; font-size: 17px; }
+  .next .steps ol { margin: 0 0 0 22px; }
+  .next .steps li { margin-bottom: 12px; }
+  footer { padding: 36px 0; text-align: center; font-family: Arial, sans-serif; font-size: 13px; color: #78716c; }
+</style>
+</head>
+<body>
+
+<section class="hero" data-section="hero" data-label="Confirmation banner">
+  <div class="wrap">
+    <span class="check">✓</span>
+    <h1 data-edit="hero.title" data-type="text" data-label="Headline">You're in — check your inbox</h1>
+    <p data-edit="hero.subtitle" data-type="text" data-label="Supporting line">The guide is on its way. It usually arrives within a couple of minutes.</p>
+  </div>
+</section>
+
+<section class="next" data-section="next" data-label="What happens next">
+  <div class="wrap">
+    <h2 data-edit="next.heading" data-type="text" data-label="Heading">While you wait</h2>
+    <div class="steps" data-edit="next.body" data-type="richtext" data-label="Next steps">
+      <ol>
+        <li>Open the email from us and <strong>move it to your primary inbox</strong> so the rest of the series lands there too.</li>
+        <li>Skim step one of the playbook — it takes five minutes and you can apply it today.</li>
+        <li>Reply with your biggest lead-generation challenge. A real person reads every message.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<footer data-section="footer" data-label="Footer">
+  <div class="wrap">
+    <p data-edit="footer.smallprint" data-type="text" data-label="Footer line">© Your Business Name. All rights reserved.</p>
+  </div>
+</footer>
+
+</body>
+</html>

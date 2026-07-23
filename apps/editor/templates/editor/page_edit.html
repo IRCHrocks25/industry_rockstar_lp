@@ -14,14 +14,40 @@
       <span class="editor-page-name">{{ page.name }}</span>
       {% if page.is_published %}
       <span class="badge badge-success">Published</span>
+      {% if version.updated_at > page.published_version.created_at %}
+      <span class="badge badge-warning">Unpublished changes</span>
+      {% endif %}
       {% else %}
       <span class="badge badge-warning">Draft</span>
       {% endif %}
     </div>
     <div class="editor-topbar-right">
       <span class="help" id="save-state" role="status" aria-live="polite"></span>
+      {% if page.is_published %}
+      <a class="btn btn-secondary" target="_blank" rel="noopener"
+         href="{{ request.scheme }}://{{ site.subdomain }}.{{ base_domain }}/{% if page.path %}{{ page.path }}/{% endif %}">
+        <svg class="icon" aria-hidden="true"><use href="{% static 'icons.svg' %}#external-link"/></svg>
+        View live
+      </a>
+      {% endif %}
+      <form method="post" action="{% url 'page_publish' page.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">
+          {% if page.is_published %}Publish changes{% else %}Publish{% endif %}
+        </button>
+      </form>
     </div>
   </header>
+
+  {% if messages %}
+  <div class="stack" style="padding: var(--space-3) var(--space-5) 0;">
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}" role="status">
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
 
   <div class="editor-main">
     <div class="editor-preview">
@@ -31,10 +57,132 @@
     <aside class="editor-panel" aria-label="Page fields">
       <div class="panel-body">
         <h2 style="font-size: var(--text-md);">Editable fields</h2>
-        <p class="help">Marking fields arrives in the next step of the build —
-           this preview shows exactly what was imported.</p>
+        {% if groups %}
+        <p class="help">Edit a field and the preview updates instantly — changes autosave
+          to the draft. Click anything in the preview to jump to its field.</p>
+        <form id="fields-form" onsubmit="return false;">
+          {% for group in groups %}
+          <section class="field-group">
+            <h3 class="field-group-title">{{ group.name }}</h3>
+            {% for f in group.fields %}
+            <div class="field" data-field-anchor="{{ f.id }}">
+              <label class="label" for="f-{{ f.id }}">{{ f.label }}</label>
+
+              {% if not f.editable %}
+                <p class="help">This “{{ f.field_type }}” field is wired up in a later step.</p>
+
+              {% elif f.field_type == "richtext" %}
+                <textarea class="textarea" id="f-{{ f.id }}" rows="4"
+                          data-field-id="{{ f.id }}" data-field-type="{{ f.field_type }}">{{ f.value|default:'' }}</textarea>
+
+              {% elif f.field_type == "image" %}
+                <input class="input mono" id="f-{{ f.id }}" type="url" placeholder="Image URL"
+                       data-field-id="{{ f.id }}" data-field-type="image" data-part="src"
+                       value="{{ f.value.src|default:'' }}">
+                <input class="input" type="text" placeholder="Alt text" style="margin-top: var(--space-2);"
+                       data-field-id="{{ f.id }}" data-field-type="image" data-part="alt"
+                       value="{{ f.value.alt|default:'' }}">
+
+              {% elif f.field_type == "cta" %}
+                <input class="input" id="f-{{ f.id }}" type="text" placeholder="Button text"
+                       data-field-id="{{ f.id }}" data-field-type="cta" data-part="text"
+                       value="{{ f.value.text|default:'' }}">
+                <input class="input mono" type="url" placeholder="Destination URL" style="margin-top: var(--space-2);"
+                       data-field-id="{{ f.id }}" data-field-type="cta" data-part="url"
+                       value="{{ f.value.url|default:'' }}">
+
+              {% elif f.field_type == "background_image" %}
+                <input class="input mono" id="f-{{ f.id }}" type="url" placeholder="Background image URL"
+                       data-field-id="{{ f.id }}" data-field-type="background_image" data-part="src"
+                       value="{{ f.value.src|default:'' }}">
+
+              {% elif f.field_type == "link_url" %}
+                <input class="input mono" id="f-{{ f.id }}" type="url" placeholder="https://…"
+                       data-field-id="{{ f.id }}" data-field-type="link_url"
+                       value="{{ f.value|default:'' }}">
+
+              {% else %}
+                <input class="input" id="f-{{ f.id }}" type="text"
+                       data-field-id="{{ f.id }}" data-field-type="{{ f.field_type }}"
+                       value="{{ f.value|default:'' }}">
+              {% endif %}
+
+              {% if f.notes %}<p class="help">{{ f.notes }}</p>{% endif %}
+            </div>
+            {% endfor %}
+          </section>
+          {% endfor %}
+        </form>
+        {% else %}
+        <p class="help">No editable fields were detected on this page.</p>
+        {% if annotation_enabled %}
+        <form method="post" action="{% url 'page_reannotate' page.id %}" style="margin-top: var(--space-3);">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-primary">Ask AI to find the editable parts</button>
+        </form>
+        <p class="help" style="margin-top: var(--space-2);">Takes about a minute — you'll see progress while it works.</p>
+        {% else %}
+        <p class="help" style="margin-top: var(--space-2);">AI annotation is turned
+          off. Add <span class="mono">OPENAI_API_KEY</span> to the server's
+          <span class="mono">.env</span> and restart — a “find the editable parts”
+          button will appear here.</p>
+        {% endif %}
+        {% endif %}
+
+        {% if forms %}
+        <section class="field-group">
+          <h3 class="field-group-title">Forms</h3>
+          {% for form in forms %}
+          <form class="form-config" method="post" action="{% url 'form_save' form.id %}">
+            {% csrf_token %}
+            <p class="label" style="margin-bottom: var(--space-2);">{{ form.name }}
+              <span class="mono help">({{ form.editable_id }})</span></p>
+
+            <div class="field">
+              <label class="label" for="wh-{{ form.id }}">Webhook URL</label>
+              <input class="input mono" id="wh-{{ form.id }}" type="url" name="webhook_url"
+                     value="{{ form.webhook_url }}" placeholder="https://…" autocapitalize="none" spellcheck="false">
+              <p class="help">Where each lead is sent. Leave empty to only store submissions.</p>
+            </div>
+
+            <div class="field">
+              <label class="label" for="sp-{{ form.id }}">On success, go to</label>
+              <select class="input" id="sp-{{ form.id }}" name="success_page">
+                <option value="">— same page —</option>
+                {% for sib in sibling_pages %}
+                <option value="{{ sib.id }}" {% if form.success_page_id == sib.id %}selected{% endif %}>
+                  {{ sib.name }} (/{{ sib.path }})
+                </option>
+                {% endfor %}
+              </select>
+              <p class="help">Pick this form's thank-you page.</p>
+            </div>
+
+            <div class="field">
+              <label class="label" style="display: flex; align-items: center; gap: var(--space-2);">
+                <input type="checkbox" name="gate_redirect_on_success"
+                       {% if form.gate_redirect_on_success %}checked{% endif %}>
+                Wait for the webhook before redirecting
+              </label>
+              <p class="help">Off (default) is more resilient: we store the lead and redirect
+                immediately, then deliver the webhook in the background with retries.</p>
+            </div>
+
+            <button type="submit" class="btn btn-secondary">Save form</button>
+          </form>
+          {% endfor %}
+        </section>
+        {% endif %}
       </div>
     </aside>
   </div>
 </div>
+
+<script>
+  window.EDITOR = {
+    saveUrl: "{% url 'page_save' page.id %}",
+    csrfToken: "{{ csrf_token }}",
+  };
+</script>
+<script src="{% static 'js/editor.js' %}" defer></script>
 {% endblock %}

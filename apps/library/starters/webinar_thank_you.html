@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>You're registered</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; background: #ffffff; line-height: 1.6; }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 0 24px; }
+  .hero { background: #0f172a; color: #f8fafc; text-align: center; padding: 96px 0 88px; }
+  .check { display: inline-flex; width: 64px; height: 64px; align-items: center; justify-content: center; background: #b45309; border-radius: 999px; font-size: 32px; margin-bottom: 28px; }
+  .hero h1 { font-size: 38px; line-height: 1.15; margin-bottom: 16px; font-weight: 800; }
+  .hero p { font-size: 19px; color: #cbd5e1; }
+  .details { padding: 72px 0; }
+  .details h2 { font-size: 26px; margin-bottom: 18px; }
+  .details .body { color: #475569; font-size: 17px; }
+  .details .body ul { margin: 0 0 0 22px; }
+  .details .body li { margin-bottom: 12px; }
+  footer { padding: 36px 0; text-align: center; font-size: 13px; color: #94a3b8; }
+</style>
+</head>
+<body>
+
+<section class="hero" data-section="hero" data-label="Confirmation banner">
+  <div class="wrap">
+    <span class="check">✓</span>
+    <h1 data-edit="hero.title" data-type="text" data-label="Headline">Your seat is saved</h1>
+    <p data-edit="hero.subtitle" data-type="text" data-label="Supporting line">A confirmation email with your join link is on its way.</p>
+  </div>
+</section>
+
+<section class="details" data-section="details" data-label="Before the session">
+  <div class="wrap">
+    <h2 data-edit="details.heading" data-type="text" data-label="Heading">Before the session</h2>
+    <div class="body" data-edit="details.body" data-type="richtext" data-label="Checklist">
+      <ul>
+        <li><strong>Add it to your calendar</strong> — the invite is attached to your confirmation email.</li>
+        <li>Come with one specific goal; the last 15 minutes are open Q&amp;A.</li>
+        <li>Can't make it live? Register anyway — the replay goes to every registrant.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer data-section="footer" data-label="Footer">
+  <div class="wrap">
+    <p data-edit="footer.smallprint" data-type="text" data-label="Footer line">© Your Business Name. All rights reserved.</p>
+  </div>
+</footer>
+
+</body>
+</html>

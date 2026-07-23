@@ -383,6 +383,23 @@ code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
   border-left: 1px solid var(--color-border);
   overflow-y: auto;
 }
+.field-group {
+  padding-top: var(--space-4);
+  margin-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+.field-group:first-of-type {
+  border-top: 0;
+  margin-top: var(--space-2);
+}
+.field-group-title {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-3);
+}
 
 /* --- Utilities ---------------------------------------------------------------- */
 
@@ -415,4 +432,114 @@ code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
   font-weight: 600;
   font-size: var(--text-md);
   margin-bottom: var(--space-4);
+}
+
+/* --- Template gallery (New site) --------------------------------------------- */
+
+.template-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: var(--space-3);
+}
+.template-card {
+  position: relative;
+  display: block;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+.template-card:hover {
+  border-color: var(--color-border-strong);
+}
+.template-card:has(> input:checked) {
+  border-color: var(--color-accent);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+}
+.template-card:has(> input:focus-visible) {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.template-card > input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.template-card-thumb {
+  display: block;
+  position: relative;
+  height: 9rem;
+  background: var(--color-subtle);
+  border-bottom: 1px solid var(--color-border);
+  overflow: hidden;
+}
+.template-card-thumb iframe {
+  width: 1280px;
+  height: 960px;
+  border: 0;
+  transform: scale(0.19);
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+.template-card-thumb .template-card-blank {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.template-card-body {
+  display: block;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+}
+.template-card-name {
+  display: block;
+  font-weight: 600;
+  font-size: var(--text-base);
+}
+.template-card-desc {
+  display: block;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  margin-top: var(--space-1);
+}
+.template-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+.template-card-meta a {
+  position: relative; /* stays clickable above the card's label hit-area */
+  color: var(--color-accent);
+}
+div.template-card {
+  cursor: default; /* list page: cards are not pickers */
+}
+.btn-link-danger {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  color: var(--color-error);
+}
+.btn-link-danger:hover {
+  text-decoration: underline;
+}
+
+/* Editor panel: flash a field when its element is clicked in the preview */
+.field-flash {
+  animation: field-flash 1.2s ease;
+  border-radius: var(--radius-sm);
+}
+@keyframes field-flash {
+  0%, 40% { background: var(--color-accent-tint); box-shadow: 0 0 0 4px var(--color-accent-tint); }
+  100% { background: transparent; box-shadow: none; }
 }

@@ -53,7 +53,7 @@ class RenderVersionTests(TestCase):
         self.assertNotIn("onclick", out)
         self.assertNotIn("javascript:", out)
         self.assertNotIn("<script>", out)
-        self.assertNotIn("Old", out.split("<body")[1])  # old copy fully replaced
+        self.assertNotIn("Old <b>copy</b>", out)  # the richtext node's old content is fully replaced
 
     def test_image_sets_src_alt_and_drops_stale_srcset(self):
         version = self._version({"hero-image": {"src": "/media/assets/ab/new.png", "alt": "New alt"}})

@@ -27,9 +27,18 @@ def render_version(version, mode="publish", page=None):
             continue  # untouched field keeps the imported content
         _apply(node, field.get("field_type", "text"), value)
     _apply_seo(doc, page)
+    _apply_forms(doc, page)
     if mode == "publish":
         _strip_annotations(doc)
     return lxml_html.tostring(doc, doctype="<!DOCTYPE html>", encoding="unicode")
+
+
+def _apply_forms(doc, page):
+    """Point managed <form>s at the /_submit proxy + add honeypot. Lazy import
+    keeps the render engine decoupled from the forms app (architecture.md §11)."""
+    from apps.forms.integration import apply_forms
+
+    apply_forms(doc, page)
 
 
 def _find(doc, editable_id):
